@@ -1,6 +1,7 @@
-package com.halfa.islami
+package com.halfa.islami.utils
 
-import com.google.gson.JsonObject
+import com.halfa.islami.PrayerTimesResponse
+import com.halfa.islami.PrayerCalenderResponse
 import retrofit2.Call
 import retrofit2.http.GET
 import retrofit2.http.Query
@@ -12,7 +13,7 @@ interface PrayerTimingsApi {
         @Query("longitude") longitude: Double,
         @Query("date") date: String,
         @Query("method") method: Int
-    ): Call<PrayerTimingsResponse>
+    ): Call<PrayerCalenderResponse>
 
     @GET("timings")
     fun getPrayerTime(
