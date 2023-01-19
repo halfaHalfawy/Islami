@@ -1,13 +1,12 @@
-package com.halfa.islami
+package com.halfa.islami.models
 
 import com.google.gson.annotations.SerializedName
 
 data class PrayerCalenderResponse(
-
     @SerializedName("code") val code: Int,
     @SerializedName("status") val status: String,
     @SerializedName("data") val data: List<PrayerTimingsData>
-)
+    )
 
 data class PrayerTimesResponse(
     @SerializedName("code") val code: Int,
@@ -23,7 +22,7 @@ data class PrayerTimingsData(
 )
 
 data class Timings(
-    @SerializedName("Fajr") val fajr: String,
+    @SerializedName ("Fajr") val fajr: String,
     @SerializedName("Sunrise") val sunrise: String,
     @SerializedName("Dhuhr") val dhuhr: String,
     @SerializedName("Asr") val asr: String,
@@ -73,6 +72,7 @@ data class Hijri(
     @SerializedName("year") val year: String,
     @SerializedName("designation") val designation: Designation,
     @SerializedName("holidays") val holidays: List<Any>
+
 )
 
 data class Meta(

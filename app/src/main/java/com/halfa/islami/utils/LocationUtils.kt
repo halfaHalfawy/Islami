@@ -14,7 +14,7 @@ class LocationUtils {
 
     companion object {
 
-        fun getCurrentLocation(context: Context,listener:LocationListener){
+        fun getCurrentLocation(context: Context, listener: LocationListener) {
 
 
             val locationManager =
@@ -30,9 +30,10 @@ class LocationUtils {
                 )
                 != PackageManager.PERMISSION_GRANTED
             ) {
+
                 requestFineLocationPermission(context)
 
-            }else{
+            } else {
                 val hasGps = locationManager.isProviderEnabled(LocationManager.GPS_PROVIDER)
 //------------------------------------------------------//
                 val hasNetwork = locationManager.isProviderEnabled(LocationManager.NETWORK_PROVIDER)
@@ -56,11 +57,10 @@ class LocationUtils {
                 }
 
 
-
             }
 
 
-         }
+        }
 
         private fun requestFineLocationPermission(context: Context) {
             if (ContextCompat.checkSelfPermission(
