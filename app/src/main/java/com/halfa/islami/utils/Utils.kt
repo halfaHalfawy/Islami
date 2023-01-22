@@ -19,9 +19,13 @@ object Utils {
 
         val sdf = SimpleDateFormat("HH:mm", Locale.getDefault())
 
-        val stf = SimpleDateFormat("HH:mm:ss")
+        val stf = SimpleDateFormat("HH:mm:ss", Locale.getDefault())
 
-        val current = Calendar.getInstance().time
+        val current = Calendar.getInstance(
+            Locale.getDefault()
+        ).time
+
+
         val currentTime = stf.format(current)
         val fajrTime = sdf.parse(fajr)
         val dhuhrTime = sdf.parse(dhuhr)
@@ -31,6 +35,8 @@ object Utils {
 
         val prayerList = listOf(fajrTime, dhuhrTime, asrTime, maghribTime, ishaTime)
         var nextPrayer: String = ""
+
+
         var waitingTime: Long = Long.MAX_VALUE
         for (prayer in prayerList) {
             val diff = prayer.time - stf.parse(currentTime).time
@@ -48,7 +54,10 @@ object Utils {
                 }
             }
         }
-//        val timeUntilNextPrayer = stf.format(Date(waitingTime))
+        // here the waiting time is incresed by 2 so the incres is before this,the icreased
+        // 2 hours is from the format func
+        val sfWithout=SimpleDateFormat("HH:mm:ss",)
+        val timeUntilNextPrayer = stf.format(Date(waitingTime))
         return Pair(nextPrayer, Date(waitingTime))
     }
 

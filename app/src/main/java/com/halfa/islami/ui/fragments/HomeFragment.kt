@@ -90,12 +90,14 @@ class HomeFragment : Fragment() {
     private fun runWaitingTimeCountDown(nexPrayerTimeUntilIt: Date) {
 
         var stf = SimpleDateFormat("HH:mm:ss")
-
+        stf.timeZone = TimeZone.getTimeZone("UTC")
+        val s = nexPrayerTimeUntilIt.time
         startCountdown(stf.format(nexPrayerTimeUntilIt), binding.nextPrayerWaitingTime)
 
     }
 
     fun startCountdown(time: String, textView: TextView) {
+
         var currentTime = time.split(":")
         var hours = currentTime[0].toInt()
         var minutes = currentTime[1].toInt()
