@@ -1,9 +1,14 @@
 package com.halfa.islami.ui.fragments
 
+import android.app.AlarmManager
+import android.app.PendingIntent
+import android.content.Context
+import android.content.Intent
 import android.content.pm.PackageManager
 
 import android.location.Location
 import android.location.LocationListener
+import android.media.MediaPlayer
 import android.os.Bundle
 import android.os.CountDownTimer
 import android.util.Log
@@ -18,8 +23,10 @@ import androidx.navigation.Navigation
 import com.halfa.islami.R
 import com.halfa.islami.databinding.FragmentHomeBinding
 import com.halfa.islami.ui.HomeViewModel
+import com.halfa.islami.utils.AlarmReceiver
 import com.halfa.islami.utils.LocationUtils
 import com.halfa.islami.utils.Utils
+import com.halfa.islami.utils.service.AlarmSoundService
 import java.text.SimpleDateFormat
 import java.util.*
 import kotlin.reflect.jvm.internal.impl.descriptors.Visibilities.Local
@@ -47,10 +54,27 @@ class HomeFragment : Fragment() {
                     .navigate(R.id.action_homeFragment_to_prayerTimesFragment)
             })
 
-
+        binding.azkarCard.setOnClickListener(View.OnClickListener {
+            runAlarm(0, 5, 0)
+        })
         // Inflate the layout for this fragment
         return binding.root
 
+    }
+
+    private fun runAlarm(hour: Int, minute: Int, second: Int) {
+        val alarmManager = activity?.getSystemService(Context.ALARM_SERVICE) as AlarmManager
+        val intent = Intent(activity, AlarmReceiver::class.java)
+        val pendingIntent = PendingIntent.getBroadcast(activity, 0, intent, 0)
+
+        val calendar = Calendar.getInstance()
+        calendar.timeInMillis = System.currentTimeMillis()
+        calendar.set(Calendar.HOUR_OF_DAY, hour)
+        calendar.set(Calendar.MINUTE, minute)
+        calendar.set(Calendar.SECOND, second)
+
+
+        alarmManager.setExact(AlarmManager.RTC_WAKEUP, calendar.timeInMillis, pendingIntent)
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
@@ -160,6 +184,7 @@ class HomeFragment : Fragment() {
             }
         }
     }
+
 
     private val locationListener = object : LocationListener {
         override fun onLocationChanged(location: Location) {

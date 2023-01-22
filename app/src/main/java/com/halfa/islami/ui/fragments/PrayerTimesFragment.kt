@@ -1,17 +1,25 @@
 package com.halfa.islami.ui.fragments
 
+import android.app.AlarmManager
+import android.app.PendingIntent
+import android.content.Context
+import android.content.Intent
 import android.os.Bundle
+import android.os.SystemClock
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.LinearLayout
+import androidx.core.content.ContextCompat.getSystemService
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.ViewModelProvider
 import com.halfa.islami.R
 import com.halfa.islami.databinding.FragmentPrayerTimesBinding
 import com.halfa.islami.databinding.PrayerTymesItemBinding
 import com.halfa.islami.ui.HomeViewModel
+import com.halfa.islami.utils.AlarmReceiver
 import com.halfa.islami.utils.Utils
+import java.util.*
 
 class PrayerTimesFragment : Fragment() {
     lateinit var binding: FragmentPrayerTimesBinding
@@ -59,6 +67,7 @@ class PrayerTimesFragment : Fragment() {
             binding.prayersList.addView(prayerItem.root)
         }
     }
+
 
     companion object {
 
