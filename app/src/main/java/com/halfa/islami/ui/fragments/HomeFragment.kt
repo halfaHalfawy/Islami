@@ -9,6 +9,7 @@ import android.content.pm.PackageManager
 import android.location.Location
 import android.location.LocationListener
 import android.media.MediaPlayer
+import android.os.Build
 import android.os.Bundle
 import android.os.CountDownTimer
 import android.util.Log
@@ -55,17 +56,29 @@ class HomeFragment : Fragment() {
             })
 
         binding.azkarCard.setOnClickListener(View.OnClickListener {
-            runAlarm(0, 5, 0)
+            runAlarm(15, 40 ,30)
         })
+
         // Inflate the layout for this fragment
+
         return binding.root
+
 
     }
 
     private fun runAlarm(hour: Int, minute: Int, second: Int) {
         val alarmManager = activity?.getSystemService(Context.ALARM_SERVICE) as AlarmManager
         val intent = Intent(activity, AlarmReceiver::class.java)
-        val pendingIntent = PendingIntent.getBroadcast(activity, 0, intent, 0)
+//        val pendingIntent = PendingIntent.getBroadcast(activity, 0, intent, 0)
+
+//         intent = intent.setClassName("com.halfa.islami.utils", "com.halfa.islami.utils.AlarmReceiver")
+        val pendingIntent = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+            PendingIntent.getBroadcast(activity, 0, intent, PendingIntent.FLAG_MUTABLE)
+        } else {
+            PendingIntent.getBroadcast(activity, 0, intent, PendingIntent.FLAG_UPDATE_CURRENT)
+
+        }
+
 
         val calendar = Calendar.getInstance()
         calendar.timeInMillis = System.currentTimeMillis()
