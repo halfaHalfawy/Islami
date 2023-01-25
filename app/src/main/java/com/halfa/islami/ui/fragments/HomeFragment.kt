@@ -23,6 +23,7 @@ import androidx.lifecycle.ViewModelProvider
 import androidx.navigation.Navigation
 import com.halfa.islami.R
 import com.halfa.islami.databinding.FragmentHomeBinding
+import com.halfa.islami.repos.PrayerTimesRepository
 import com.halfa.islami.ui.HomeViewModel
 import com.halfa.islami.utils.AlarmReceiver
 import com.halfa.islami.utils.LocationUtils
@@ -36,6 +37,37 @@ class HomeFragment : Fragment() {
 
     lateinit var binding: FragmentHomeBinding;
     lateinit var viewModel: HomeViewModel
+    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        super.onViewCreated(view, savedInstanceState)
+//        requestFineLocationPermission(requireContext())
+
+
+        viewModel = ViewModelProvider(requireActivity())[HomeViewModel::class.java]
+
+//        viewModel.getPrayerTimesMutable()
+
+        PrayerTimesRepository.prayerTimingsDataMutableLiveData.observe(requireActivity()) {
+            binding.hijriDate.text =
+                "${it.date.hijri.day} ${it.date.hijri.month.en} ${it.date.hijri.year}"
+            binding.gregorianDate.text = it.date.gregorian.date
+            var (nexpPName, nexPrayerTimeUntilIt) = Utils.getNextPrayer(
+                it.timings.fajr,
+                it.timings.dhuhr,
+                it.timings.asr,
+                it.timings.maghrib,
+                it.timings.isha
+            )
+            binding.nextPrayer.text = nexpPName + ", "
+            runWaitingTimeCountDown(nexPrayerTimeUntilIt)
+
+        }
+
+        LocationUtils.getCurrentLocation(
+            requireActivity(),
+            locationListener
+        )
+    }
+
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
@@ -56,73 +88,14 @@ class HomeFragment : Fragment() {
             })
 
         binding.azkarCard.setOnClickListener(View.OnClickListener {
-            runAlarm(15, 40 ,30)
+            Utils.runAlarm(17, 12, 0, requireActivity())
         })
 
         // Inflate the layout for this fragment
 
         return binding.root
-
-
     }
 
-    private fun runAlarm(hour: Int, minute: Int, second: Int) {
-        val alarmManager = activity?.getSystemService(Context.ALARM_SERVICE) as AlarmManager
-        val intent = Intent(activity, AlarmReceiver::class.java)
-//        val pendingIntent = PendingIntent.getBroadcast(activity, 0, intent, 0)
-
-//         intent = intent.setClassName("com.halfa.islami.utils", "com.halfa.islami.utils.AlarmReceiver")
-        val pendingIntent = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
-            PendingIntent.getBroadcast(activity, 0, intent, PendingIntent.FLAG_MUTABLE)
-        } else {
-            PendingIntent.getBroadcast(activity, 0, intent, PendingIntent.FLAG_UPDATE_CURRENT)
-
-        }
-
-
-        val calendar = Calendar.getInstance()
-        calendar.timeInMillis = System.currentTimeMillis()
-        calendar.set(Calendar.HOUR_OF_DAY, hour)
-        calendar.set(Calendar.MINUTE, minute)
-        calendar.set(Calendar.SECOND, second)
-
-
-        alarmManager.setExact(AlarmManager.RTC_WAKEUP, calendar.timeInMillis, pendingIntent)
-    }
-
-    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
-        super.onViewCreated(view, savedInstanceState)
-//        requestFineLocationPermission(requireContext())
-        LocationUtils.getCurrentLocation(
-            requireContext(),
-            locationListener
-        )
-
-        viewModel = ViewModelProvider(requireActivity())[HomeViewModel::class.java]
-        viewModel.getPrayerTimesMutable().observe(viewLifecycleOwner) {
-            binding.hijriDate.text = it.data.date.hijri.day + " " + it.data.date.hijri.month.en +
-                    " " + it.data.date.hijri.year
-            binding.gregorianDate.text = it.data.date.gregorian.date
-            var (nexpPName, nexPrayerTimeUntilIt) = Utils.getNextPrayer(
-                it.data.timings.fajr,
-                it.data.timings.dhuhr,
-                it.data.timings.asr,
-                it.data.timings.maghrib,
-                it.data.timings.isha
-            )
-            binding.nextPrayer.text = nexpPName + ", "
-            runWaitingTimeCountDown(nexPrayerTimeUntilIt)
-
-        }
-
-        viewModel.getPrayerTimings().observe(
-            viewLifecycleOwner
-        ) {
-
-
-//            initRecycler(it)
-        }
-    }
 
     private fun runWaitingTimeCountDown(nexPrayerTimeUntilIt: Date) {
 
@@ -183,7 +156,7 @@ class HomeFragment : Fragment() {
             REQUEST_CODE_FINE_LOCATION -> {
                 // If request is cancelled, the result arrays are empty.
                 if ((grantResults.isNotEmpty() && grantResults[0] == PackageManager.PERMISSION_GRANTED)) {
-                    LocationUtils.getCurrentLocation(requireContext(), locationListener)
+                    LocationUtils.getCurrentLocation(requireActivity(), locationListener)
 
                     // Permission was granted, do something here
                 } else {
@@ -214,6 +187,7 @@ class HomeFragment : Fragment() {
 
 
                     if (!isSuccess) {
+
 //                        Navigation.findNavController(view).ge
 //                        Navigation.findNavController(view)
 //                            .navigate(R.id.action_prayerTimesFragment_to_homeFragment)

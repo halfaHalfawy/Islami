@@ -8,11 +8,11 @@ import retrofit2.http.Query
 
 interface PrayerTimingsApi {
     @GET("calendar")
-    fun getPrayerTimings(
+    fun getPrayerCalender(
         @Query("latitude") latitude: Double,
-        @Query("longitude") longitude: Double,
-        @Query("date") date: String,
-        @Query("method") method: Int
+        @Query("longitude") longitude: Double
+//        @Query("date") date: String,
+//        @Query("method") method: Int
     ): Call<PrayerCalenderResponse>
 
     @GET("timings")
@@ -22,7 +22,6 @@ interface PrayerTimingsApi {
         @Query("date") date: String,
 //        @Query("method") method: Int
     ): Call<PrayerTimesResponse>
-
 
 
 }

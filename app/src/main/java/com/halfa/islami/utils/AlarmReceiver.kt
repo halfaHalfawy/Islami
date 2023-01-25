@@ -10,6 +10,7 @@ import android.media.MediaPlayer
 import android.os.Build
 import androidx.annotation.RequiresApi
 import androidx.core.app.NotificationCompat
+import androidx.core.content.ContextCompat
 import androidx.work.OneTimeWorkRequestBuilder
 import androidx.work.WorkManager
 import androidx.work.workDataOf
@@ -43,7 +44,16 @@ class AlarmReceiver : BroadcastReceiver() {
     private fun runAudioService(context: Context, intent: Intent) {
 
         getStartIntent(context).putExtra("audio_file", R.raw.azan)
-        context.startService(getStartIntent(context))
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            context.startForegroundService(getStartIntent(context))
+        } else {
+            context.startService(getStartIntent(context))
+        }
+    }
+
+    private fun isInBackground(context: Context): Boolean {
+
+        return ContextCompat.isDeviceProtectedStorage(context)
     }
 
 

@@ -1,5 +1,11 @@
 package com.halfa.islami.utils
 
+import android.app.Activity
+import android.app.AlarmManager
+import android.app.PendingIntent
+import android.content.Context
+import android.content.Intent
+import android.os.Build
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -11,6 +17,32 @@ object Utils {
     fun inflateLayout(layoutId: Int, parent: ViewGroup): View {
         return LayoutInflater.from(parent.context).inflate(layoutId, parent, false)
     }
+
+
+    fun runAlarm(hour: Int, minute: Int, second: Int,activity: Activity) {
+        val alarmManager = activity?.getSystemService(Context.ALARM_SERVICE) as AlarmManager
+        val intent = Intent(activity, AlarmReceiver::class.java)
+//        val pendingIntent = PendingIntent.getBroadcast(activity, 0, intent, 0)
+
+//         intent = intent.setClassName("com.halfa.islami.utils", "com.halfa.islami.utils.AlarmReceiver")
+        val pendingIntent = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+            PendingIntent.getBroadcast(activity, 0, intent, PendingIntent.FLAG_MUTABLE)
+        } else {
+            PendingIntent.getBroadcast(activity, 0, intent, PendingIntent.FLAG_UPDATE_CURRENT)
+
+        }
+
+
+        val calendar = Calendar.getInstance()
+        calendar.timeInMillis = System.currentTimeMillis()
+        calendar.set(Calendar.HOUR_OF_DAY, hour)
+        calendar.set(Calendar.MINUTE, minute)
+        calendar.set(Calendar.SECOND, second)
+
+
+        alarmManager.setExact(AlarmManager.RTC_WAKEUP, calendar.timeInMillis, pendingIntent)
+    }
+
 
     fun getNextPrayer(
         fajr: String, dhuhr: String,
@@ -34,13 +66,12 @@ object Utils {
         val ishaTime = sdf.parse(isha)
 
         val prayerList = listOf(fajrTime, dhuhrTime, asrTime, maghribTime, ishaTime)
-        var nextPrayer: String = ""
-
-
+        var nextPrayer: String = "Fajr"
         var waitingTime: Long = Long.MAX_VALUE
         for (prayer in prayerList) {
             val diff = prayer.time - stf.parse(currentTime).time
             if (diff > 0) {
+
                 if (diff < waitingTime) {
                     waitingTime = diff
                     nextPrayer = when (prayer) {
@@ -49,7 +80,7 @@ object Utils {
                         asrTime -> "Asr"
                         maghribTime -> "Maghrib"
                         ishaTime -> "Isha"
-                        else -> ""
+                        else -> "Fajr"
                     }
                 }
             }

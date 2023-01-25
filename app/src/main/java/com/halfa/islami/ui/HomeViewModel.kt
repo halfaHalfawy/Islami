@@ -1,18 +1,32 @@
 package com.halfa.islami.ui
 
 import android.view.View
+import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
+import com.halfa.islami.MainActivity
+import com.halfa.islami.models.PrayerCalenderResponse
 import com.halfa.islami.models.PrayerTimesResponse
 import com.halfa.islami.repos.PrayerTimesRepository
 
 class HomeViewModel() : ViewModel() {
 
+    init {
+
+        getPrayersTimesCalender().observe(MainActivity()) {
+
+        }
+    }
 
     fun getPrayerTimings(): MutableLiveData<List<Map<String, String>>> {
 
         return PrayerTimesRepository.getPrayerTimingsMutable()
     }
+
+    fun getPrayersTimesCalender(): MutableLiveData<PrayerCalenderResponse> {
+        return PrayerTimesRepository.prayerCalenderResponseMutableLiveData
+    }
+
 
     fun getPrayerTimesMutable(): MutableLiveData<PrayerTimesResponse> {
         return PrayerTimesRepository.getPrayerTimesResponseMutable()
@@ -25,8 +39,8 @@ class HomeViewModel() : ViewModel() {
         successCallBack: (isSuccess: Boolean, messages: String) -> Unit
     ) {
 
-        if (PrayerTimesRepository.prayersTimes.value?.isEmpty() == true) {
-            PrayerTimesRepository.getPrayers(
+        if (PrayerTimesRepository.prayerCalenderResponseMutableLiveData.value == null || PrayerTimesRepository.prayerCalenderResponseMutableLiveData.value!!.data.isEmpty()) {
+            PrayerTimesRepository.getPrayerCalender(
                 longi,
                 lati,
                 successCallBack
@@ -35,5 +49,4 @@ class HomeViewModel() : ViewModel() {
             PrayerTimesRepository.prayersTimes.value = PrayerTimesRepository.prayersTimes.value
         }
     }
-
 }
