@@ -1,18 +1,11 @@
 package com.halfa.islami.ui.fragments
 
-import android.app.AlarmManager
-import android.app.PendingIntent
-import android.content.Context
-import android.content.Intent
 import android.content.pm.PackageManager
 
 import android.location.Location
 import android.location.LocationListener
-import android.media.MediaPlayer
-import android.os.Build
 import android.os.Bundle
 import android.os.CountDownTimer
-import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -25,13 +18,9 @@ import com.halfa.islami.R
 import com.halfa.islami.databinding.FragmentHomeBinding
 import com.halfa.islami.repos.PrayerTimesRepository
 import com.halfa.islami.ui.HomeViewModel
-import com.halfa.islami.utils.AlarmReceiver
-import com.halfa.islami.utils.LocationUtils
-import com.halfa.islami.utils.Utils
-import com.halfa.islami.utils.service.AlarmSoundService
+import com.halfa.islami.utils.*
 import java.text.SimpleDateFormat
 import java.util.*
-import kotlin.reflect.jvm.internal.impl.descriptors.Visibilities.Local
 
 class HomeFragment : Fragment() {
 
@@ -39,12 +28,7 @@ class HomeFragment : Fragment() {
     lateinit var viewModel: HomeViewModel
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-//        requestFineLocationPermission(requireContext())
-
-
         viewModel = ViewModelProvider(requireActivity())[HomeViewModel::class.java]
-
-//        viewModel.getPrayerTimesMutable()
 
         PrayerTimesRepository.prayerTimingsDataMutableLiveData.observe(requireActivity()) {
             binding.hijriDate.text =
@@ -57,15 +41,15 @@ class HomeFragment : Fragment() {
                 it.timings.maghrib,
                 it.timings.isha
             )
+
+            if (it.date != null)
+                Utils.checkAndRunAlarms(it, requireActivity())
             binding.nextPrayer.text = nexpPName + ", "
             runWaitingTimeCountDown(nexPrayerTimeUntilIt)
 
         }
 
-        LocationUtils.getCurrentLocation(
-            requireActivity(),
-            locationListener
-        )
+
     }
 
     override fun onCreateView(
@@ -88,7 +72,9 @@ class HomeFragment : Fragment() {
             })
 
         binding.azkarCard.setOnClickListener(View.OnClickListener {
-            Utils.runAlarm(17, 12, 0, requireActivity())
+            binding.triggerTime.text = Utils.getAllPendingAlarms(requireActivity()).toString()
+
+
         })
 
         // Inflate the layout for this fragment
@@ -96,6 +82,36 @@ class HomeFragment : Fragment() {
         return binding.root
     }
 
+    override fun onResume() {
+        super.onResume()
+
+
+        val location: String? = SharedPreferenceHelper.getString(Constants.LONGITUDE)
+
+        if (location == null) {
+            LocationUtils.getCurrentLocation(
+                requireActivity(),
+                locationListener
+            )
+        } else {
+
+            viewModel.getPrayers(
+                SharedPreferenceHelper.getString(Constants.LONGITUDE)!!.toDouble(),
+                SharedPreferenceHelper.getString(Constants.LONGITUDE)!!.toDouble(),
+                binding.root,
+                successCallBack = fun(
+                    isSuccess,
+                    messages
+                ) {
+                    if (isSuccess) {
+
+                    } else {
+                        Toast.makeText(requireContext(), messages, Toast.LENGTH_LONG).show()
+                    }
+
+                })
+        }
+    }
 
     private fun runWaitingTimeCountDown(nexPrayerTimeUntilIt: Date) {
 
@@ -146,7 +162,6 @@ class HomeFragment : Fragment() {
     }
 
     private val REQUEST_CODE_FINE_LOCATION = 1
-
     override fun onRequestPermissionsResult(
         requestCode: Int,
         permissions: Array<out String>,
@@ -174,7 +189,11 @@ class HomeFragment : Fragment() {
 
     private val locationListener = object : LocationListener {
         override fun onLocationChanged(location: Location) {
-            Log.d(TAG, "onViewCreated: ${location.longitude} , ${location.latitude}")
+//            Log.d(TAG, "onViewCreated: ${location.longitude} , ${location.latitude}")
+
+            SharedPreferenceHelper.putString(Constants.LONGITUDE, location.longitude.toString())
+            SharedPreferenceHelper.putString(Constants.LATITUDE, location.latitude.toString())
+
 
             viewModel.getPrayers(
                 location.longitude,
@@ -184,17 +203,7 @@ class HomeFragment : Fragment() {
                     isSuccess,
                     messages
                 ) {
-
-
                     if (!isSuccess) {
-
-//                        Navigation.findNavController(view).ge
-//                        Navigation.findNavController(view)
-//                            .navigate(R.id.action_prayerTimesFragment_to_homeFragment)
-//                        val navController = view?.findNavController()
-//                        if (navController != null) {
-//                            navController.popBackStack()
-//                        }
 
                         Toast.makeText(requireContext(), messages, Toast.LENGTH_LONG).show()
 //                        if(Navigation.findNavController().popBackStack())

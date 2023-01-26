@@ -28,6 +28,12 @@ class AlarmSoundService : Service() {
         } else {
             mediaPlayer.start()
             startForeground(1, createNotification())
+            mediaPlayer.setOnCompletionListener {
+
+                it.release()
+                stopForeground(true)
+                stopSelf()
+            }
         }
 
         return Service.START_STICKY

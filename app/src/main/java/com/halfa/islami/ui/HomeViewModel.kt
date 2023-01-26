@@ -7,6 +7,7 @@ import androidx.lifecycle.ViewModel
 import com.halfa.islami.MainActivity
 import com.halfa.islami.models.PrayerCalenderResponse
 import com.halfa.islami.models.PrayerTimesResponse
+import com.halfa.islami.models.PrayerTimingsData
 import com.halfa.islami.repos.PrayerTimesRepository
 
 class HomeViewModel() : ViewModel() {
@@ -18,9 +19,8 @@ class HomeViewModel() : ViewModel() {
         }
     }
 
-    fun getPrayerTimings(): MutableLiveData<List<Map<String, String>>> {
-
-        return PrayerTimesRepository.getPrayerTimingsMutable()
+    fun getPrayerTimings(): MutableLiveData<PrayerTimingsData> {
+        return PrayerTimesRepository.prayerTimingsDataMutableLiveData
     }
 
     fun getPrayersTimesCalender(): MutableLiveData<PrayerCalenderResponse> {
@@ -46,7 +46,7 @@ class HomeViewModel() : ViewModel() {
                 successCallBack
             )
         } else {
-            PrayerTimesRepository.prayersTimes.value = PrayerTimesRepository.prayersTimes.value
+            PrayerTimesRepository.prayerTimingsDataMutableLiveData.value = PrayerTimesRepository.prayerTimingsDataMutableLiveData.value
         }
     }
 }

@@ -17,12 +17,14 @@ object SharedPreferenceHelper {
         sharedPreferences.edit().putString(key, value).apply()
     }
 
+
     fun deleteString(key: String) {
         sharedPreferences.edit().remove(key).apply()
 
     }
 
-    public fun putObject(key: String, objecto: Any) {
+    public fun putObject(key: String, objecto:Any )
+    {
 
         val serial = gson.toJson(objecto)
 

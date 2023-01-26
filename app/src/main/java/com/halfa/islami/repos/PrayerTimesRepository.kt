@@ -22,18 +22,13 @@ import kotlin.collections.ArrayList
 object PrayerTimesRepository {
     val prayerCalenderResponseMutableLiveData: MutableLiveData<PrayerCalenderResponse> =
         MutableLiveData()
-    val prayersTimes: MutableLiveData<List<Map<String, String>>> = MutableLiveData()
-    val prayerTimingsDataMutableLiveData: MutableLiveData<PrayerTimingsData> = MutableLiveData()
+   val prayerTimingsDataMutableLiveData: MutableLiveData<PrayerTimingsData> = MutableLiveData()
 
     var prayerTimesResponseMutableLiveData: MutableLiveData<PrayerTimesResponse> = MutableLiveData()
 
-    init {
-        prayersTimes.value = ArrayList()
-    }
 
-    fun getPrayerTimingsMutable(): MutableLiveData<List<Map<String, String>>> {
-        return prayersTimes
-    }
+
+
 
     fun getPrayerTimesResponseMutable(): MutableLiveData<PrayerTimesResponse> {
         return prayerTimesResponseMutableLiveData
@@ -42,19 +37,13 @@ object PrayerTimesRepository {
     fun setTodayTimings(prayerCalenderResponse: PrayerCalenderResponse?) {
         var tod = Calendar.getInstance()
         if (prayerCalenderResponse != null) {
-
             val timingsData = prayerCalenderResponse.data[tod.get(Calendar.DAY_OF_MONTH) - 1]
             val monthnumber = tod.get(Calendar.MONTH) + 1
             if (timingsData.date.gregorian.month.number == monthnumber) {
                 // this mean that this data is for this month
 //                so update the prayertimestiming
-                val s = prayersTimes.hasObservers()
+               prayerTimingsDataMutableLiveData.value = timingsData
 
-                val sdf = Utils.getProperties(timingsData.timings)
-
-                prayersTimes.value = sdf
-                prayerTimingsDataMutableLiveData.value = timingsData
-                prayersTimes.setValue(sdf)
             } else {
                 // update the local database with the data of this month
                 updateCalenderData(timingsData.meta.longitude, timingsData.meta.latitude)
@@ -150,6 +139,8 @@ object PrayerTimesRepository {
 
             prayerCalenderResponseMutableLiveData.value = prayerCalenderLocal!!
             setTodayTimings(prayerCalenderLocal)
+
+
         } else {
 
             val retrofit = Retrofit.Builder().baseUrl("https://api.aladhan.com/v1/")

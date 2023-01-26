@@ -9,6 +9,9 @@ import android.os.Build
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import androidx.core.content.ContextCompat.getSystemService
+import com.halfa.islami.models.Alarms
+import com.halfa.islami.models.PrayerTimingsData
 import java.text.SimpleDateFormat
 import java.util.*
 
@@ -19,16 +22,20 @@ object Utils {
     }
 
 
-    fun runAlarm(hour: Int, minute: Int, second: Int,activity: Activity) {
+    fun runAlarm(hour: Int, minute: Int, second: Int, activity: Activity, requestCode: Int) {
+
         val alarmManager = activity?.getSystemService(Context.ALARM_SERVICE) as AlarmManager
         val intent = Intent(activity, AlarmReceiver::class.java)
-//        val pendingIntent = PendingIntent.getBroadcast(activity, 0, intent, 0)
 
-//         intent = intent.setClassName("com.halfa.islami.utils", "com.halfa.islami.utils.AlarmReceiver")
         val pendingIntent = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
-            PendingIntent.getBroadcast(activity, 0, intent, PendingIntent.FLAG_MUTABLE)
+            PendingIntent.getBroadcast(activity, requestCode, intent, PendingIntent.FLAG_MUTABLE)
         } else {
-            PendingIntent.getBroadcast(activity, 0, intent, PendingIntent.FLAG_UPDATE_CURRENT)
+            PendingIntent.getBroadcast(
+                activity,
+                requestCode,
+                intent,
+                PendingIntent.FLAG_UPDATE_CURRENT
+            )
 
         }
 
@@ -43,6 +50,27 @@ object Utils {
         alarmManager.setExact(AlarmManager.RTC_WAKEUP, calendar.timeInMillis, pendingIntent)
     }
 
+    fun cancelAlarm(activity: Activity, requestCode: Int) {
+        val alarmManager = activity?.getSystemService(Context.ALARM_SERVICE) as AlarmManager
+        val intent = Intent(activity, AlarmReceiver::class.java)
+//        val pendingIntent = PendingIntent.getBroadcast(activity, 0, intent, 0)
+
+//         intent = intent.setClassName("com.halfa.islami.utils", "com.halfa.islami.utils.AlarmReceiver")
+        val pendingIntent = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+            PendingIntent.getBroadcast(activity, requestCode, intent, PendingIntent.FLAG_MUTABLE)
+        } else {
+            PendingIntent.getBroadcast(
+                activity,
+                requestCode,
+                intent,
+                PendingIntent.FLAG_UPDATE_CURRENT
+            )
+
+        }
+
+        alarmManager.cancel(pendingIntent)
+
+    }
 
     fun getNextPrayer(
         fajr: String, dhuhr: String,
@@ -87,7 +115,7 @@ object Utils {
         }
         // here the waiting time is incresed by 2 so the incres is before this,the icreased
         // 2 hours is from the format func
-        val sfWithout=SimpleDateFormat("HH:mm:ss",)
+        val sfWithout = SimpleDateFormat("HH:mm:ss")
         val timeUntilNextPrayer = stf.format(Date(waitingTime))
         return Pair(nextPrayer, Date(waitingTime))
     }
@@ -106,5 +134,81 @@ object Utils {
         return maps
     }
 
+    fun checkAndRunAlarms(timingsData: PrayerTimingsData, activity: Activity) {
+        val thisDay = Calendar.getInstance().time
+        val formatter = SimpleDateFormat("dd-MM-yyyy")
+        val formatted = formatter.format(thisDay)
 
+
+        val lastAlarms: Alarms? =
+            SharedPreferenceHelper.getObject(
+                Constants.LAST_SET_ALARMS,
+                Alarms::class.java
+            ) as Alarms?
+
+        val runningAlarms: Alarms? =
+            SharedPreferenceHelper.getObject(
+                Constants.RUNNING_ALARMS,
+                Alarms::class.java
+            ) as Alarms?
+
+        if (lastAlarms == null || runningAlarms == null) {
+            SharedPreferenceHelper.putObject(
+                Constants.LAST_SET_ALARMS,
+                Alarms(prayerTimingsData = timingsData, day = formatted)
+            )
+
+            runAlarms(Alarms(prayerTimingsData = timingsData, day = formatted), activity)
+        } else
+            if (
+                lastAlarms == runningAlarms
+            ) {
+                runAlarms(lastAlarms, activity)
+            }
+
+    }
+
+    private fun runAlarms(alarms: Alarms, activity: Activity) {
+
+        SharedPreferenceHelper.putObject(Constants.RUNNING_ALARMS, alarms)
+        val listo: MutableList<Pair<Int, Int>> = mutableListOf<Pair<Int, Int>>()
+
+        alarms.apply {
+            if (fajr)
+                listo.add(parseTime(prayerTimingsData.timings.fajr))
+            if (dhuhr)
+                listo.add(parseTime(prayerTimingsData.timings.dhuhr))
+            if (asr)
+                listo.add(parseTime(prayerTimingsData.timings.asr))
+            if (maghrib)
+                listo.add(parseTime(prayerTimingsData.timings.maghrib))
+            if (isha)
+                listo.add(parseTime(prayerTimingsData.timings.isha))
+        }
+
+        var i = 0
+        listo.forEach {
+            runAlarm(it.first, it.second, 0, activity, i)
+            i++
+        }
+    }
+
+    fun parseTime(timeString: String): Pair<Int, Int> {
+        val timeFormat = SimpleDateFormat("HH:mm", Locale.getDefault())
+        val time = timeFormat.parse(timeString)
+        val calendar = Calendar.getInstance()
+        calendar.time = time
+        val hour = calendar.get(Calendar.HOUR_OF_DAY)
+        val minute = calendar.get(Calendar.MINUTE)
+        return Pair(hour, minute)
+    }
+
+
+    fun getAllPendingAlarms(activity: Activity): AlarmManager.AlarmClockInfo? {
+        val alarmManager: AlarmManager =
+            activity.getSystemService(Context.ALARM_SERVICE) as AlarmManager
+        val alarmIntents = alarmManager.nextAlarmClock
+        return alarmIntents
+
+    }
 }
